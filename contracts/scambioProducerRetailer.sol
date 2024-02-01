@@ -2,9 +2,11 @@
 pragma solidity ^0.8.10;
 import "./Utils.sol";
 
-// per il momento manca id partite di latte usate
 // manca id producer, id retailer e in generale gestione delle identità
 contract ScambioProducerRetailer {
+
+    // i valori associati a id (chiavi) non ancora inizializzati sono false di default
+    mapping (uint => bool) idFormaggiVenduti;
 
     struct Formaggio {
         uint id;
@@ -63,6 +65,9 @@ contract ScambioProducerRetailer {
     function acquistaFormaggio(uint _id, string[] memory _tipoTrasformazione, uint _certificatoStagionatura, string memory _dataScadenza, uint _altezza, uint _diametro, uint _peso,
                                     string[] memory _eventiAcquistoPartitaLatte) public {
 
+        bool isFormaggioGiaVenduto = idFormaggiVenduti[_id];
+        require(!isFormaggioGiaVenduto, "Il formaggio e' gia' stato venduto: operazione rifiutata");
+
         Formaggio memory formaggio = Formaggio({
             id: _id,
             tipoTrasformazione: _tipoTrasformazione,
@@ -75,6 +80,7 @@ contract ScambioProducerRetailer {
             eventiAcquistoPartitaLatte: _eventiAcquistoPartitaLatte
         });
 
+        idFormaggiVenduti[_id] = true;
         emit AcquistoFormaggio(formaggio);
     }
 

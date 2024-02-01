@@ -12,7 +12,7 @@ contract AcquistoMilkhub {
         string razzaMucca;
         string alimentazioneMucca;
         uint quantita;                  // in litri
-        uint dataProduzione;
+        string dataProduzione;
         uint dataAcquisto;                  
     }
 
@@ -33,7 +33,7 @@ contract AcquistoMilkhub {
 
     // Contiene l'emissione dell'evento
     function acquistaSilos(string calldata _provenienza, string calldata _fornitore, string calldata _razzaMucca, string calldata _alimentazioneMucca, 
-                    uint _quantita, uint _dataProduzione) public { 
+                    uint _quantita, string memory _dataProduzione) public { 
 
         (bool success, bytes memory data) = idGeneratorLibrary.delegatecall(abi.encodeWithSignature("getSilosId()"));
         require(success, "Delegate call fallita");
@@ -54,7 +54,7 @@ contract AcquistoMilkhub {
         emit AcquistoSilos(silos);
     }
 
-    function checkDisciplinare(string calldata provenienza, string calldata razzaMucca, string calldata alimentazioneMucca) public view {
+    function checkDisciplinare(string calldata provenienza, string calldata razzaMucca, string calldata alimentazioneMucca) private view {
         require(Utils.findString(provenienzeLatteOk, provenienza), "Provenienza non lecita: registrazione rifiutata");
         require(Utils.findString(razzeMuccaOk, razzaMucca), "Razza mucca non lecita: registrazione rifiutata");
         require(Utils.findString(alimentazioniMuccaOk, alimentazioneMucca), "Alimentazione mucca non lecita: registrazione rifiutata");

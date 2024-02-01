@@ -2,9 +2,11 @@
 pragma solidity ^0.8.10;
 import "./Utils.sol";
 
-// per il momento manca id silos usati
+
 // manca id milkhub, id producer e in generale gestione delle identità
 contract ScambioMilkhubProducer {
+
+    mapping (uint => bool) idPartiteLatteVendute;
 
     struct PartitaLatte {
         uint id;
@@ -58,6 +60,9 @@ contract ScambioMilkhubProducer {
     function acquistaPartitaLatte(uint _id, string[] memory _tipoTrasformazione, string memory _dataScadenza, uint _temperaturaConservazione, uint _quantita, 
                                             string[] memory _eventiAcquistoSilos) public {
 
+        bool isPartitaLatteGiaVenduta = idPartiteLatteVendute[_id];
+        require(!isPartitaLatteGiaVenduta, "La partita di latte e' gia' stata venduta: operazione rifiutata");
+
         PartitaLatte memory partitaLatte = PartitaLatte({
             id: _id,
             tipoTrasformazione: _tipoTrasformazione,
@@ -68,12 +73,13 @@ contract ScambioMilkhubProducer {
             eventiAcquistoSilos: _eventiAcquistoSilos
         });                                    
 
+        idPartiteLatteVendute[_id] = true;
         emit AcquistoPartitaLatte(partitaLatte);
     }
 
-    function checkDisciplinare(string[] memory tipoTrasformazione, uint temperaturaConservazione) public view {
+    function checkDisciplinare(string[] memory tipoTrasformazione, uint temperaturaConservazione) private view {
         require(temperaturaConservazione >= 18, "Temperatura di conservazione non lecita: registrazione rifiutata");
-        require(tipoTrasformazione.length == trasformazioniRichieste.length, "Tipo di trasformazione non lecita: registrazione rifiutata");
-        require(Utils.compareStringArrays(tipoTrasformazione, trasformazioniRichieste), "Tipo di trasformazione non lecita: registrazione rifiutata");
+        require(tipoTrasformazione.length == trasformazioniRichieste.length, "Tipo di trasformazione non lecita: registrazione rifiutata, err 1");
+        require(Utils.compareStringArrays(tipoTrasformazione, trasformazioniRichieste), "Tipo di trasformazione non lecita: registrazione rifiutata, err 2");
     }
 }
