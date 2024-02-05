@@ -6,34 +6,45 @@ import "./Utils.sol";
 contract ScambioRetailerConsumer {
     struct PezzoFormaggio {
         uint id;
-        uint quantita;          // in grammi
+        uint quantita;                      // in grammi
         uint dataAcquisto;
-        string eventoAcquistoFormaggio;       // id dell'evento riferito al formaggio a cui appartiene il pezzo
+        uint idFormaggioUsato;
     }
 
-    address private idGeneratorLibrary;
+    uint private lastPezzoFormaggioId;
+    mapping(uint => PezzoFormaggio) public allPezziFormaggio;
+    address public scambioProducerRetailerAddress;
 
-    constructor(address _idGeneratorLibrary) {
-        idGeneratorLibrary = _idGeneratorLibrary;
+    constructor(address _scambioProducerRetailerAddress) {
+        scambioProducerRetailerAddress = _scambioProducerRetailerAddress;
     }
 
-    // Dichiarazione evento
-    event MessaInVenditaPezzoFormaggio(PezzoFormaggio pezzoFormaggio);    
+    event MessaInVenditaPezzoFormaggio(PezzoFormaggio);
 
-    // Contiene l'emissione dell'evento di messa in vendita
-    function mettiInVenditaPezzoFormaggio(uint _quantita, string memory _eventoAcquistoFormaggio) public {
-        
-        (bool success, bytes memory data) = idGeneratorLibrary.delegatecall(abi.encodeWithSignature("getPezzoFormaggioId()"));
-        require(success, "Delegate call fallita");
 
-        PezzoFormaggio memory pezzoFormaggio = PezzoFormaggio({
-            id: abi.decode(data, (uint)),
-            quantita: _quantita,
-            dataAcquisto: 0,
-            eventoAcquistoFormaggio: _eventoAcquistoFormaggio
+    function mettiInVenditaPezzoFormaggio(uint _quantita, uint _idFormaggioUsato) public {
+
+        uint _id = getId();
+
+        PezzoFormaggio memory daVendere = PezzoFormaggio({
+            id:                 _id,
+            quantita:           _quantita,
+            dataAcquisto:       0,
+            idFormaggioUsato:   _idFormaggioUsato
         });
-
-        emit MessaInVenditaPezzoFormaggio(pezzoFormaggio);
+       
+        allPezziFormaggio[_id] = daVendere;
+        emit MessaInVenditaPezzoFormaggio(daVendere);
     }
 
+    function getId() private returns(uint) {
+        lastPezzoFormaggioId += 1;
+        return lastPezzoFormaggioId;
+    }
+
+    function checkDati(uint idFormaggioUsato) private view {
+        /* ScambioProducerRetailer scambioProducerRetailer = ScambioProducerRetailer(scambioProducerRetailerAddress);
+        Formaggio memory tmp = scambioProducerRetailer.allFormaggi[idFormaggioUsato];
+        require(tmp.peso > 0, "Il formaggio usato non esiste: operazione rifiutata"); */
+    }
 }

@@ -16,32 +16,30 @@ contract AcquistoMilkhub {
         uint dataAcquisto;                  
     }
 
+    uint private lastSilosId;
     string[] private provenienzeLatteOk = ["Provincia di Parma", "Provincia di Reggio Emilia", "Provincia di Modena", "Provincia di Bologna (ovest del Reno)", 
                                                 "Provincia di Mantova (sud del Po)"];
-    
     string[] private razzeMuccaOk = ["frisona", "reggiana rossa"];
     string[] private alimentazioniMuccaOk = ["erba", "fieno"];
 
-    address private idGeneratorLibrary;
+    mapping(uint => Silos) public allSilos;
 
-    constructor(address _idGeneratorLibrary) {
-        idGeneratorLibrary = _idGeneratorLibrary;
-    }
-
-    // Dichiarazione evento
     event AcquistoSilos(Silos silos);
 
-    // Contiene l'emissione dell'evento
+
+    constructor() {
+        lastSilosId = 0;
+    }
+
+
     function acquistaSilos(string calldata _provenienza, string calldata _fornitore, string calldata _razzaMucca, string calldata _alimentazioneMucca, 
                     uint _quantita, string memory _dataProduzione) public { 
 
-        (bool success, bytes memory data) = idGeneratorLibrary.delegatecall(abi.encodeWithSignature("getSilosId()"));
-        require(success, "Delegate call fallita");
-
         checkDisciplinare(_provenienza, _razzaMucca, _alimentazioneMucca);
+        uint _id = getId();
 
-        Silos memory silos = Silos({
-            id:                   abi.decode(data, (uint)),
+        Silos memory daAcquistare = Silos({
+            id:                   _id,
             provenienza:          _provenienza,
             fornitore:            _fornitore,
             razzaMucca:           _razzaMucca,
@@ -51,12 +49,18 @@ contract AcquistoMilkhub {
             dataAcquisto:         block.timestamp
         });
         
-        emit AcquistoSilos(silos);
+        allSilos[_id] = daAcquistare;
+        emit AcquistoSilos(daAcquistare);
     }
 
     function checkDisciplinare(string calldata provenienza, string calldata razzaMucca, string calldata alimentazioneMucca) private view {
         require(Utils.findString(provenienzeLatteOk, provenienza), "Provenienza non lecita: registrazione rifiutata");
         require(Utils.findString(razzeMuccaOk, razzaMucca), "Razza mucca non lecita: registrazione rifiutata");
         require(Utils.findString(alimentazioniMuccaOk, alimentazioneMucca), "Alimentazione mucca non lecita: registrazione rifiutata");
+    }
+
+    function getId() private returns(uint) {
+        lastSilosId += 1;
+        return lastSilosId;
     }
 }
