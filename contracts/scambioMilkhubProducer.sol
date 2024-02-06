@@ -10,7 +10,7 @@ contract ScambioMilkhubProducer {
     struct PartitaLatte {
         uint id;
         string[] tipoTrasformazione;
-        string dataScadenza;                    // formato ""dd-mm-yyyy"
+        uint dataScadenza;                   
         uint temperaturaConservazione;
         uint quantita;                          // in litri
         uint dataAcquisto;
@@ -23,7 +23,7 @@ contract ScambioMilkhubProducer {
                 "Aggiunta di caglio di vitello e riposo per 10-12 minuti a temperatura di 33-35 gradi",
                 "Rottura della cagliata in piccoli pezzi per 10-12 minuti a temperatura di 55 gradi"];
 
-    mapping(uint => PartitaLatte) public allPartiteLatte;
+    mapping(uint => PartitaLatte) private allPartiteLatte;
     address public acquistoMilkhubAddress;
 
     event MessaInVenditaPartitaLatte(PartitaLatte);
@@ -35,10 +35,10 @@ contract ScambioMilkhubProducer {
         acquistoMilkhubAddress = _acquistoMilkhubAddress;
     }
 
-    function mettiInVenditaPartitaLatte(string[] memory _tipoTrasformazione, string memory _dataScadenza, uint _temperaturaConservazione, uint _quantita,
+    function mettiInVenditaPartitaLatte(string[] memory _tipoTrasformazione, uint _dataScadenza, uint _temperaturaConservazione, uint _quantita,
                                             uint[] memory _idSilosUsati) public {
         
-        // checkDati(_tipoTrasformazione, _temperaturaConservazione, _idSilosUsati);
+        checkDati(_dataScadenza, _tipoTrasformazione, _temperaturaConservazione, _idSilosUsati, _quantita);
         uint _id = getId();
 
         PartitaLatte memory daVendere = PartitaLatte({
@@ -69,15 +69,17 @@ contract ScambioMilkhubProducer {
         emit AcquistoPartitaLatte(daAcquistare);
     }
 
-    function checkDati(string[] memory tipoTrasformazione, uint temperaturaConservazione, uint[] memory idSilosUsati) private view {
-        /* AcquistoMilkhub acquistoMilkhub = AcquistoMilkhub(acquistoMilkhubAddress);
+    function checkDati(uint dataScadenza, string[] memory tipoTrasformazione, uint temperaturaConservazione, uint[] memory idSilosUsati, uint quantita) private view {
+        require(dataScadenza > block.timestamp, "La data di scadenza deve essere successiva a quella attuale");
+        checkDisciplinare(tipoTrasformazione, temperaturaConservazione);
+        
+        AcquistoMilkhub acquistoMilkhub = AcquistoMilkhub(acquistoMilkhubAddress);
 
         for(uint i=0; i < idSilosUsati.length; i++) {
-            AcquistoMilkhub.Silos memory tmp = acquistoMilkhub.allSilos[idSilosUsati[i]];
+            AcquistoMilkhub.Silos memory tmp = acquistoMilkhub.getById(idSilosUsati[i]);
             require(tmp.quantita > 0, "Almeno uno dei silos usati non esiste: operazione rifiutata");
+            require(block.timestamp < tmp.dataScadenza, "Si sta tentando di usare un silos scaduto: operazione rifiutata");
         }
-        
-        checkDisciplinare(tipoTrasformazione, temperaturaConservazione); */ 
     }
 
     function checkDisciplinare(string[] memory tipoTrasformazione, uint temperaturaConservazione) private view {
@@ -89,5 +91,9 @@ contract ScambioMilkhubProducer {
     function getId() private returns(uint) {
         lastPartitaLatteId += 1;
         return lastPartitaLatteId;
+    }
+
+    function getById(uint id) public view returns(PartitaLatte memory) {
+        return allPartiteLatte[id];
     }
 }

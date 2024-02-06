@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.10;
 import "./Utils.sol";
+import "./scambioProducerRetailer.sol";
 
 
 contract ScambioRetailerConsumer {
@@ -34,6 +35,7 @@ contract ScambioRetailerConsumer {
         });
        
         allPezziFormaggio[_id] = daVendere;
+        checkDati(_quantita, _idFormaggioUsato);
         emit MessaInVenditaPezzoFormaggio(daVendere);
     }
 
@@ -42,9 +44,14 @@ contract ScambioRetailerConsumer {
         return lastPezzoFormaggioId;
     }
 
-    function checkDati(uint idFormaggioUsato) private view {
-        /* ScambioProducerRetailer scambioProducerRetailer = ScambioProducerRetailer(scambioProducerRetailerAddress);
-        Formaggio memory tmp = scambioProducerRetailer.allFormaggi[idFormaggioUsato];
-        require(tmp.peso > 0, "Il formaggio usato non esiste: operazione rifiutata"); */
+    function checkDati(uint quantita, uint idFormaggioUsato) private view {
+        ScambioProducerRetailer scambioProducerRetailer = ScambioProducerRetailer(scambioProducerRetailerAddress);
+        ScambioProducerRetailer.Formaggio memory tmp = scambioProducerRetailer.getById(idFormaggioUsato);
+        require(tmp.peso > 0, "Il formaggio usato non esiste: operazione rifiutata");
+        require(block.timestamp < tmp.dataScadenza, "Si sta tentando di mettere in vendita un pezzo di un formaggio scaduto: operazione rifiutata");
+
+        uint qtaRimanenteGrammi = Utils.grammiToLibbre(tmp.qtaRimanente);
+        require(qtaRimanenteGrammi >= quantita, "Si sta tentando di acquistare una quantita' maggiore di quella disponibile: operazione rifiutata");
+        scambioProducerRetailer.aggiornaQtaRimanente(idFormaggioUsato, quantita);
     }
 }

@@ -12,8 +12,9 @@ contract AcquistoMilkhub {
         string razzaMucca;
         string alimentazioneMucca;
         uint quantita;                  // in litri
-        string dataProduzione;
-        uint dataAcquisto;                  
+        uint dataProduzione;
+        uint dataAcquisto;
+        uint dataScadenza;              
     }
 
     uint private lastSilosId;
@@ -22,7 +23,7 @@ contract AcquistoMilkhub {
     string[] private razzeMuccaOk = ["frisona", "reggiana rossa"];
     string[] private alimentazioniMuccaOk = ["erba", "fieno"];
 
-    mapping(uint => Silos) public allSilos;
+    mapping(uint => Silos) private allSilos;
 
     event AcquistoSilos(Silos silos);
 
@@ -33,9 +34,9 @@ contract AcquistoMilkhub {
 
 
     function acquistaSilos(string calldata _provenienza, string calldata _fornitore, string calldata _razzaMucca, string calldata _alimentazioneMucca, 
-                    uint _quantita, string memory _dataProduzione) public { 
+                    uint _quantita, uint _dataProduzione, uint _dataScadenza) public { 
 
-        checkDisciplinare(_provenienza, _razzaMucca, _alimentazioneMucca);
+        checkDati(_dataProduzione, _dataScadenza, _provenienza, _razzaMucca, _alimentazioneMucca);
         uint _id = getId();
 
         Silos memory daAcquistare = Silos({
@@ -46,7 +47,8 @@ contract AcquistoMilkhub {
             alimentazioneMucca:   _alimentazioneMucca,
             quantita:             _quantita,
             dataProduzione:       _dataProduzione,
-            dataAcquisto:         block.timestamp
+            dataAcquisto:         block.timestamp,
+            dataScadenza:         _dataScadenza
         });
         
         allSilos[_id] = daAcquistare;
@@ -59,8 +61,18 @@ contract AcquistoMilkhub {
         require(Utils.findString(alimentazioniMuccaOk, alimentazioneMucca), "Alimentazione mucca non lecita: registrazione rifiutata");
     }
 
+    function checkDati(uint dataProduzione, uint dataScadenza, string calldata provenienza, string calldata razzaMucca, string calldata alimentazioneMucca) private view {
+        require(dataProduzione < block.timestamp, "La data di produzione deve essere antecedente alla data attuale");
+        require(dataScadenza > block.timestamp, "La data di scadenza deve essere successiva alla data attuale");
+        checkDisciplinare(provenienza, razzaMucca, alimentazioneMucca);
+    }
+
     function getId() private returns(uint) {
         lastSilosId += 1;
         return lastSilosId;
+    }
+
+    function getById(uint id) public view returns(Silos memory) {
+        return allSilos[id];
     }
 }

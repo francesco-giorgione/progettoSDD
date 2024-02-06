@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.10;
 import "./Utils.sol";
+import "./scambioMilkhubProducer.sol";
 
 // manca id producer, id retailer e in generale gestione delle identità
 contract ScambioProducerRetailer {
@@ -11,12 +12,13 @@ contract ScambioProducerRetailer {
 
         // 1 CERT. 12 MESI --- 2 CERT. 18 MESI --- 3 CERT. 24 MESI --- 4 CERT. 30 MESI
         uint certificatoStagionatura;
-        string dataScadenza;        // formato "dd-mm-yyyy"
+        uint dataScadenza;        
         uint altezza;               // in pollici/10
         uint diametro;              // in pollici
         uint peso;                  // in libbre
         uint dataAcquisto;
         uint[] idPartiteLatteUsate;
+        uint qtaRimanente;
     }
 
     uint private lastFormaggioId;
@@ -36,10 +38,10 @@ contract ScambioProducerRetailer {
     }
 
 
-    function mettiInVenditaFormaggio(string[] memory _tipoTrasformazione, uint _stagionatura, string memory _dataScadenza, uint _altezza, uint _diametro, 
+    function mettiInVenditaFormaggio(string[] memory _tipoTrasformazione, uint _stagionatura, uint _dataScadenza, uint _altezza, uint _diametro, 
                                         uint _peso, uint[] memory _idPartiteLatteUsate) public {
 
-        // checkDati(_tipoTrasformazione, _stagionatura, _altezza, _diametro, _peso);
+        checkDati(_dataScadenza, _tipoTrasformazione, _stagionatura, _altezza, _diametro, _peso, _idPartiteLatteUsate);
         uint _id = getId();
 
         Formaggio memory daVendere = Formaggio({
@@ -51,7 +53,8 @@ contract ScambioProducerRetailer {
             diametro:                   _diametro,
             peso:                       _peso,
             dataAcquisto:               0,
-            idPartiteLatteUsate:        _idPartiteLatteUsate
+            idPartiteLatteUsate:        _idPartiteLatteUsate,
+            qtaRimanente:               _peso
         });
 
         allFormaggi[_id] = daVendere;
@@ -81,15 +84,17 @@ contract ScambioProducerRetailer {
         require(Utils.compareStringArrays(tipoTrasformazione, trasformazioniRichieste), "Tipo di trasformazione non lecita: registrazione rifiutata");
     }
 
-    function checkDati(string[] memory tipoTrasformazione, uint stagionatura, uint altezza, uint diametro, uint peso, uint[] memory idPartiteLatteUsate) private view {
-        /* ScambioMilkhubProducer scambioMilkhubProducer = ScambioMilkhubProducer(scambioMilkhubProducerAddress);
+    function checkDati(uint dataScadenza, string[] memory tipoTrasformazione, uint stagionatura, uint altezza, uint diametro, uint peso, uint[] memory idPartiteLatteUsate) private view {
+        require(dataScadenza > block.timestamp, "La data di scadenza deve essere successiva a quella attuale");
+        checkDisciplinare(tipoTrasformazione, stagionatura, altezza, diametro, peso);
+        
+        ScambioMilkhubProducer scambioMilkhubProducer = ScambioMilkhubProducer(scambioMilkhubProducerAddress);
         
         for(uint i=0; i < idPartiteLatteUsate.length; i++) {
-            PartitaLatte memory tmp = scambioMilkhubProducer.allPartiteLatte[idPartiteLatteUsate[i]];
+            ScambioMilkhubProducer.PartitaLatte memory tmp = scambioMilkhubProducer.getById(idPartiteLatteUsate[i]);
             require(tmp.quantita > 0, "Almeno una delle partite di latte usate non esiste: operazione rifiutata");
+            require(block.timestamp < tmp.dataScadenza, "Si sta tentando di usare una partita di latte scaduta: operazione rifiutata");
         }
-
-        checkDisciplinare(tipoTrasformazione, stagionatura, altezza, diametro, peso); */
     }
 
     function getCertificatoStagionatura(uint stagionatura) private pure returns(uint) {
@@ -102,5 +107,16 @@ contract ScambioProducerRetailer {
     function getId() private returns(uint) {
         lastFormaggioId += 1;
         return lastFormaggioId;
+    }
+
+    function getById(uint id) public view returns (Formaggio memory) {
+        return allFormaggi[id];
+    }
+
+    function aggiornaQtaRimanente(uint id, uint qtaDaSottrarre) public view {
+        Formaggio memory tmp = allFormaggi[id];
+        require(tmp.peso > 0, "Id formaggio errato: impossibile continuare");
+
+        tmp.qtaRimanente -= qtaDaSottrarre;
     }
 }
