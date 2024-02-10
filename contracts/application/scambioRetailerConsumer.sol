@@ -50,8 +50,8 @@ contract ScambioRetailerConsumer {
         require(tmp.peso > 0, "Il formaggio usato non esiste: operazione rifiutata");
         require(block.timestamp < tmp.dataScadenza, "Si sta tentando di mettere in vendita un pezzo di un formaggio scaduto: operazione rifiutata");
 
-        uint qtaRimanenteGrammi = Utils.grammiToLibbre(tmp.qtaRimanente);
+        /*uint qtaRimanenteGrammi = Utils.grammiToLibbre(tmp.qtaRimanente);
         require(qtaRimanenteGrammi >= quantita, "Si sta tentando di acquistare una quantita' maggiore di quella disponibile: operazione rifiutata");
-        scambioProducerRetailer.aggiornaQtaRimanente(idFormaggioUsato, quantita);
+        scambioProducerRetailer.aggiornaQtaRimanente(idFormaggioUsato, quantita);*/
     }
 }
