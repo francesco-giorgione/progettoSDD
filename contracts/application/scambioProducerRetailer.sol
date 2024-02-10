@@ -19,6 +19,8 @@ contract ScambioProducerRetailer {
         uint dataAcquisto;
         uint[] idPartiteLatteUsate;
         uint qtaRimanente;
+        string venditore;
+        string compratore;
     }
 
     uint private lastFormaggioId;
@@ -28,20 +30,27 @@ contract ScambioProducerRetailer {
                 "Conservazione per 2-3 giorni in una ruota d'acciaio a temperatura di 16-18 gradi"];
 
     mapping(uint => Formaggio) public allFormaggi;
-    address public scambioMilkhubProducerAddress;
+    address private scambioMilkhubProducerAddress;
+    address private producerInterfaceAddress;
+    address private retailerInterfaceAddress;
 
     event MessaInVenditaFormaggio(Formaggio);
     event AcquistoFormaggio(Formaggio);
 
-    constructor(address _scambioMilkhubProducerAddress) {
+    constructor(address _scambioMilkhubProducerAddress, address _producerInterfaceAddress, address _retailerInterfaceAddress) {
         scambioMilkhubProducerAddress = _scambioMilkhubProducerAddress;
+        producerInterfaceAddress = _producerInterfaceAddress;
+        retailerInterfaceAddress = _retailerInterfaceAddress;
     }
 
 
     function mettiInVenditaFormaggio(string[] memory _tipoTrasformazione, uint _stagionatura, uint _dataScadenza, uint _altezza, uint _diametro, 
-                                        uint _peso, uint[] memory _idPartiteLatteUsate) public {
+                                        uint _peso, uint[] memory _idPartiteLatteUsate, string memory user) public {
 
-        checkDati(_dataScadenza, _tipoTrasformazione, _stagionatura, _altezza, _diametro, _peso, _idPartiteLatteUsate);
+        // check sul contratto chiamante
+        // require(msg.sender == producerInterfaceAddress, "Operazione non autorizzata: transazione rifiutata");  
+        
+        checkDati(_dataScadenza, _tipoTrasformazione, _stagionatura, _altezza, _diametro, _peso, _idPartiteLatteUsate, user);
         uint _id = getId();
 
         Formaggio memory daVendere = Formaggio({
@@ -54,14 +63,20 @@ contract ScambioProducerRetailer {
             peso:                       _peso,
             dataAcquisto:               0,
             idPartiteLatteUsate:        _idPartiteLatteUsate,
-            qtaRimanente:               _peso
+            qtaRimanente:               _peso,
+            venditore:                  user,
+            compratore:                 ""
         });
 
         allFormaggi[_id] = daVendere;
         emit MessaInVenditaFormaggio(daVendere);
     }
 
-    function acquistaFormaggio(uint id) public {
+    function acquistaFormaggio(uint id, string memory user) public {
+
+        // check sul contratto chiamante
+        // require(msg.sender == retailerInterfaceAddress, "Operazione non autorizzata: transazione rifiutata");  
+
         Formaggio memory daAcquistare = allFormaggi[id];
 
         // Se i campi di daAcquistare contengono i valori di default, significa che non esiste una partita di latte associata all'id. Il controllo viene eseguito sul
@@ -71,6 +86,7 @@ contract ScambioProducerRetailer {
         require(daAcquistare.dataAcquisto == 0, "Il formaggio e' gia' stato venduto: operazione rifiutata");  
 
         daAcquistare.dataAcquisto = block.timestamp;
+        daAcquistare.compratore = user;
         allFormaggi[id] = daAcquistare;
         emit AcquistoFormaggio(daAcquistare);
     }
@@ -84,7 +100,9 @@ contract ScambioProducerRetailer {
         require(Utils.compareStringArrays(tipoTrasformazione, trasformazioniRichieste), "Tipo di trasformazione non lecita: registrazione rifiutata");
     }
 
-    function checkDati(uint dataScadenza, string[] memory tipoTrasformazione, uint stagionatura, uint altezza, uint diametro, uint peso, uint[] memory idPartiteLatteUsate) private view {
+    function checkDati(uint dataScadenza, string[] memory tipoTrasformazione, uint stagionatura, uint altezza, uint diametro, uint peso, 
+                            uint[] memory idPartiteLatteUsate, string memory user) private view {
+
         require(dataScadenza > block.timestamp, "La data di scadenza deve essere successiva a quella attuale");
         checkDisciplinare(tipoTrasformazione, stagionatura, altezza, diametro, peso);
         
@@ -93,6 +111,7 @@ contract ScambioProducerRetailer {
         for(uint i=0; i < idPartiteLatteUsate.length; i++) {
             ScambioMilkhubProducer.PartitaLatte memory tmp = scambioMilkhubProducer.getById(idPartiteLatteUsate[i]);
             require(tmp.quantita > 0, "Almeno una delle partite di latte usate non esiste: operazione rifiutata");
+            require(Utils.compareStrings(tmp.compratore, user), "Almeno una delle partite di latte indicate non appartiene al produttore: operazione rifiutata");
             require(block.timestamp < tmp.dataScadenza, "Si sta tentando di usare una partita di latte scaduta: operazione rifiutata");
         }
     }

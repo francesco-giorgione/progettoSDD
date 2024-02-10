@@ -15,6 +15,8 @@ contract ScambioMilkhubProducer {
         uint quantita;                          // in litri
         uint dataAcquisto;
         uint[] idSilosUsati;
+        string venditore;
+        string compratore;
     }
 
     uint private lastPartitaLatteId;
@@ -24,21 +26,29 @@ contract ScambioMilkhubProducer {
                 "Rottura della cagliata in piccoli pezzi per 10-12 minuti a temperatura di 55 gradi"];
 
     mapping(uint => PartitaLatte) private allPartiteLatte;
-    address public acquistoMilkhubAddress;
+    address private acquistoMilkhubAddress;
+    address private milkhubInterfaceAddress;
+    address private producerInterfaceAddress;
+    
 
     event MessaInVenditaPartitaLatte(PartitaLatte);
     event AcquistoPartitaLatte(PartitaLatte);
 
 
-    constructor(address _acquistoMilkhubAddress) {
+    constructor(address _acquistoMilkhubAddress, address _milkhubInterfaceAddress, address _producerInterfaceAddress) {
         lastPartitaLatteId = 0;
         acquistoMilkhubAddress = _acquistoMilkhubAddress;
+        milkhubInterfaceAddress = _milkhubInterfaceAddress;
+        producerInterfaceAddress = _producerInterfaceAddress;
     }
 
     function mettiInVenditaPartitaLatte(string[] memory _tipoTrasformazione, uint _dataScadenza, uint _temperaturaConservazione, uint _quantita,
-                                            uint[] memory _idSilosUsati) public {
+                                            uint[] memory _idSilosUsati, string memory user) public {
         
-        checkDati(_dataScadenza, _tipoTrasformazione, _temperaturaConservazione, _idSilosUsati);
+        // check sul contratto chiamante
+        // require(msg.sender == milkhubInterfaceAddress, "Operazione non autorizzata: transazione rifiutata");
+                        
+        checkDati(_dataScadenza, _tipoTrasformazione, _temperaturaConservazione, _idSilosUsati, user);
         uint _id = getId();
 
         PartitaLatte memory daVendere = PartitaLatte({
@@ -48,14 +58,20 @@ contract ScambioMilkhubProducer {
             temperaturaConservazione:       _temperaturaConservazione,
             quantita:                       _quantita,
             dataAcquisto:                   0,
-            idSilosUsati:                   _idSilosUsati
+            idSilosUsati:                   _idSilosUsati,
+            venditore:                      user,
+            compratore:                     ""
         });
 
         allPartiteLatte[_id] = daVendere;
         emit MessaInVenditaPartitaLatte(daVendere);
     }
 
-    function acquistaPartitaLatte(uint id) public {
+    function acquistaPartitaLatte(uint id, string memory user) public {
+
+        // check sul contratto chiamante
+        // require(msg.sender == producerInterfaceAddress, "Operazione non autorizzata: transazione rifiutata");               
+        
         PartitaLatte memory daAcquistare = allPartiteLatte[id];
 
         // Se i campi di daAcquistare contengono i valori di default, significa che non esiste una partita di latte associata all'id. Il controllo viene eseguito sul
@@ -65,11 +81,14 @@ contract ScambioMilkhubProducer {
         require(daAcquistare.dataAcquisto == 0, "La partita di latte e' gia' stata venduta: operazione rifiutata");                               
 
         daAcquistare.dataAcquisto = block.timestamp;
+        daAcquistare.compratore = user;
         allPartiteLatte[id] = daAcquistare;
         emit AcquistoPartitaLatte(daAcquistare);
     }
 
-    function checkDati(uint dataScadenza, string[] memory tipoTrasformazione, uint temperaturaConservazione, uint[] memory idSilosUsati) private view {
+    function checkDati(uint dataScadenza, string[] memory tipoTrasformazione, uint temperaturaConservazione, uint[] memory idSilosUsati,
+                        string memory user) private view {
+
         require(dataScadenza > block.timestamp, "La data di scadenza deve essere successiva a quella attuale");
         checkDisciplinare(tipoTrasformazione, temperaturaConservazione);
         
@@ -78,6 +97,7 @@ contract ScambioMilkhubProducer {
         for(uint i=0; i < idSilosUsati.length; i++) {
             AcquistoMilkhub.Silos memory tmp = acquistoMilkhub.getById(idSilosUsati[i]);
             require(tmp.quantita > 0, "Almeno uno dei silos usati non esiste: operazione rifiutata");
+            require(Utils.compareStrings(tmp.compratore, user), "Almeno uno dei silos indicati non appartiene al centro di raccolta e trasformazione: operazione rifiutata");
             require(block.timestamp < tmp.dataScadenza, "Si sta tentando di usare un silos scaduto: operazione rifiutata");
         }
     }

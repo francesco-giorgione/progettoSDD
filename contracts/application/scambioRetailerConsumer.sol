@@ -10,20 +10,26 @@ contract ScambioRetailerConsumer {
         uint quantita;                      // in grammi
         uint dataAcquisto;
         uint idFormaggioUsato;
+        string venditore;
     }
 
     uint private lastPezzoFormaggioId;
     mapping(uint => PezzoFormaggio) public allPezziFormaggio;
-    address public scambioProducerRetailerAddress;
+    address private scambioProducerRetailerAddress;
+    address private retailerInterfaceAddress;
 
-    constructor(address _scambioProducerRetailerAddress) {
+    constructor(address _scambioProducerRetailerAddress, address _retailerInterfaceAddress) {
         scambioProducerRetailerAddress = _scambioProducerRetailerAddress;
+        retailerInterfaceAddress = _retailerInterfaceAddress;
     }
 
     event MessaInVenditaPezzoFormaggio(PezzoFormaggio);
 
 
-    function mettiInVenditaPezzoFormaggio(uint _quantita, uint _idFormaggioUsato) public {
+    function mettiInVenditaPezzoFormaggio(uint _quantita, uint _idFormaggioUsato, string memory user) public {
+
+        // check sul contratto chiamante
+        // require(msg.sender == retailerInterfaceAddress, "Operazione non autorizzata: transazione rifiutata");  
 
         uint _id = getId();
 
@@ -31,11 +37,12 @@ contract ScambioRetailerConsumer {
             id:                 _id,
             quantita:           _quantita,
             dataAcquisto:       0,
-            idFormaggioUsato:   _idFormaggioUsato
+            idFormaggioUsato:   _idFormaggioUsato,
+            venditore:          user
         });
        
         allPezziFormaggio[_id] = daVendere;
-        checkDati(_quantita, _idFormaggioUsato);
+        checkDati(_quantita, _idFormaggioUsato, user);
         emit MessaInVenditaPezzoFormaggio(daVendere);
     }
 
@@ -44,10 +51,12 @@ contract ScambioRetailerConsumer {
         return lastPezzoFormaggioId;
     }
 
-    function checkDati(uint quantita, uint idFormaggioUsato) private view {
+    function checkDati(uint quantita, uint idFormaggioUsato, string memory user) private view {
+
         ScambioProducerRetailer scambioProducerRetailer = ScambioProducerRetailer(scambioProducerRetailerAddress);
         ScambioProducerRetailer.Formaggio memory tmp = scambioProducerRetailer.getById(idFormaggioUsato);
         require(tmp.peso > 0, "Il formaggio usato non esiste: operazione rifiutata");
+        require(Utils.compareStrings(tmp.compratore, user), "Il formaggio indicato non appartiene al retailer: operazione rifiutata");
         require(block.timestamp < tmp.dataScadenza, "Si sta tentando di mettere in vendita un pezzo di un formaggio scaduto: operazione rifiutata");
 
         /*uint qtaRimanenteGrammi = Utils.grammiToLibbre(tmp.qtaRimanente);
