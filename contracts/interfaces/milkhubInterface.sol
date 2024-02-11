@@ -7,16 +7,18 @@ contract MilkhubInterface {
     
     AcquistoMilkhub private acquistoMilkhub;
     ScambioMilkhubProducer private scambioMilkhubProducer;
+    GestioneUtenti private gestioneUtenti;
 
-    constructor(address acquistoMilkhubAddress, address scambioMilkhubProducerAddress) {
+    constructor(address acquistoMilkhubAddress, address scambioMilkhubProducerAddress, address gestioneUtentiAddress) {
         acquistoMilkhub = AcquistoMilkhub(acquistoMilkhubAddress);
         scambioMilkhubProducer = ScambioMilkhubProducer(scambioMilkhubProducerAddress);
+        gestioneUtenti = GestioneUtenti(gestioneUtentiAddress);
     }
 
     function acquistaSilos(string memory provenienza, string memory fornitore, string memory razzaMucca, string memory alimentazioneMucca, 
                     uint quantita, uint dataProduzione, uint dataScadenza, string memory user) public { 
-        
-        // require(isMilkhub(user), "Operazione non consentita ai milkhub: transazione rifiutata");
+
+        require(gestioneUtenti.isMilkhub(user), "Operazione consentita esclusivamente ai milkhub: transazione rifiutata");
         acquistoMilkhub.acquistaSilos(provenienza, fornitore, razzaMucca, alimentazioneMucca, quantita, dataProduzione, dataScadenza, user);
 
     }
@@ -24,7 +26,7 @@ contract MilkhubInterface {
     function mettiInVenditaPartitaLatte(string[] memory tipoTrasformazione, uint dataScadenza, uint temperaturaConservazione, uint quantita,
                                             uint[] memory idSilosUsati, string memory user) public {
         
-        // require(isMilkhub(user), "Operazione non consentita ai milkhub: transazione rifiutata");
+        require(gestioneUtenti.isMilkhub(user), "Operazione consentita esclusivamente ai milkhub: transazione rifiutata");
         scambioMilkhubProducer.mettiInVenditaPartitaLatte(tipoTrasformazione, dataScadenza, temperaturaConservazione, quantita, idSilosUsati, user);
     }
 }
