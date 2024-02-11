@@ -3,7 +3,7 @@ pragma solidity ^0.8.10;
 
 contract gestioneUtenti {
 
-    enum Ruolo { Milkhub, Producer, Retailer, Consumer }
+    enum Ruolo { Null, Milkhub, Producer, Retailer, Consumer }
 
     struct Utente {
         string username;
@@ -123,7 +123,9 @@ contract gestioneUtenti {
     }
 
     function getUtenteByUsername(string memory username) public view returns (Utente memory) {
-        return utenti[username];
+        Utente memory tmp = utenti[username];
+        require(tmp.ruolo != Ruolo.Null, "Utente non trovato");
+        return tmp;
     }
 
     function isMilkhub(string memory username) public view returns (bool) {
