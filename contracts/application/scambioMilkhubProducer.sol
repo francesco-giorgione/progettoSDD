@@ -29,25 +29,25 @@ contract ScambioMilkhubProducer {
     address private acquistoMilkhubAddress;
     address private milkhubInterfaceAddress;
     address private producerInterfaceAddress;
+    address private nodoAdminAddress;
     
 
     event MessaInVenditaPartitaLatte(PartitaLatte);
     event AcquistoPartitaLatte(PartitaLatte);
 
 
-    constructor(address _acquistoMilkhubAddress, address _milkhubInterfaceAddress, address _producerInterfaceAddress) {
+    constructor(address _acquistoMilkhubAddress, address _nodoAdminAddress) {
         lastPartitaLatteId = 0;
         acquistoMilkhubAddress = _acquistoMilkhubAddress;
-        milkhubInterfaceAddress = _milkhubInterfaceAddress;
-        producerInterfaceAddress = _producerInterfaceAddress;
+        nodoAdminAddress = _nodoAdminAddress; 
     }
 
     function mettiInVenditaPartitaLatte(string[] memory _tipoTrasformazione, uint _dataScadenza, uint _temperaturaConservazione, uint _quantita,
                                             uint[] memory _idSilosUsati, string memory user) public {
-        
-        // check sul contratto chiamante
-        // require(msg.sender == milkhubInterfaceAddress, "Operazione non autorizzata: transazione rifiutata");
                         
+        // Check sul chiamante
+        require(msg.sender == milkhubInterfaceAddress, "Operazione non autorizzata: transazione rifiutata");
+       
         checkDati(_dataScadenza, _tipoTrasformazione, _temperaturaConservazione, _idSilosUsati, user);
         uint _id = getId();
 
@@ -67,11 +67,11 @@ contract ScambioMilkhubProducer {
         emit MessaInVenditaPartitaLatte(daVendere);
     }
 
-    function acquistaPartitaLatte(uint id, string memory user) public {
-
-        // check sul contratto chiamante
-        // require(msg.sender == producerInterfaceAddress, "Operazione non autorizzata: transazione rifiutata");               
+    function acquistaPartitaLatte(uint id, string memory user) public {          
         
+        // Check sul chiamante
+        require(msg.sender == producerInterfaceAddress, "Operazione non autorizzata: transazione rifiutata");
+
         PartitaLatte memory daAcquistare = allPartiteLatte[id];
 
         // Se i campi di daAcquistare contengono i valori di default, significa che non esiste una partita di latte associata all'id. Il controllo viene eseguito sul
@@ -115,5 +115,19 @@ contract ScambioMilkhubProducer {
 
     function getById(uint id) public view returns(PartitaLatte memory) {
         return allPartiteLatte[id];
+    }
+
+    function setMilkhubInterfaceAddress(address _milkhubInterfaceAddress) public {
+        // Check sul chiamante: deve essere il nodo ff admin       
+        require(msg.sender == nodoAdminAddress, "Operazione consentita solo al nodo admin: transazione rifiutata");
+        
+        milkhubInterfaceAddress = _milkhubInterfaceAddress;
+    }
+
+    function setProducerInterfaceAddress(address _producerInterfaceAddress) public {
+        // Check sul chiamante: deve essere il nodo ff admin       
+        require(msg.sender == nodoAdminAddress, "Operazione consentita solo al nodo admin: transazione rifiutata");
+        
+        producerInterfaceAddress = _producerInterfaceAddress;
     }
 }

@@ -33,22 +33,21 @@ contract ScambioProducerRetailer {
     address private scambioMilkhubProducerAddress;
     address private producerInterfaceAddress;
     address private retailerInterfaceAddress;
+    address private nodoAdminAddress;
 
     event MessaInVenditaFormaggio(Formaggio);
     event AcquistoFormaggio(Formaggio);
 
-    constructor(address _scambioMilkhubProducerAddress, address _producerInterfaceAddress, address _retailerInterfaceAddress) {
+    constructor(address _scambioMilkhubProducerAddress, address _nodoAdminAddress) {
         scambioMilkhubProducerAddress = _scambioMilkhubProducerAddress;
-        producerInterfaceAddress = _producerInterfaceAddress;
-        retailerInterfaceAddress = _retailerInterfaceAddress;
+        nodoAdminAddress = _nodoAdminAddress; 
     }
-
 
     function mettiInVenditaFormaggio(string[] memory _tipoTrasformazione, uint _stagionatura, uint _dataScadenza, uint _altezza, uint _diametro, 
                                         uint _peso, uint[] memory _idPartiteLatteUsate, string memory user) public {
-
-        // check sul contratto chiamante
-        // require(msg.sender == producerInterfaceAddress, "Operazione non autorizzata: transazione rifiutata");  
+        
+        // Check sul chiamante
+        require(msg.sender == producerInterfaceAddress, "Operazione non autorizzata: transazione rifiutata");
         
         checkDati(_dataScadenza, _tipoTrasformazione, _stagionatura, _altezza, _diametro, _peso, _idPartiteLatteUsate, user);
         uint _id = getId();
@@ -74,8 +73,8 @@ contract ScambioProducerRetailer {
 
     function acquistaFormaggio(uint id, string memory user) public {
 
-        // check sul contratto chiamante
-        // require(msg.sender == retailerInterfaceAddress, "Operazione non autorizzata: transazione rifiutata");  
+        // Check sul chiamante
+        require(msg.sender == retailerInterfaceAddress, "Operazione non autorizzata: transazione rifiutata");
 
         Formaggio memory daAcquistare = allFormaggi[id];
 
@@ -137,5 +136,19 @@ contract ScambioProducerRetailer {
         require(tmp.peso > 0, "Id formaggio errato: impossibile continuare");
 
         tmp.qtaRimanente -= qtaDaSottrarre;
+    }
+
+    function setProducerInterfaceAddress(address _producerInterfaceAddress) public {
+        // Check sul chiamante: deve essere il nodo ff admin       
+        require(msg.sender == nodoAdminAddress, "Operazione consentita solo al nodo admin: transazione rifiutata");
+        
+        producerInterfaceAddress = _producerInterfaceAddress;
+    }
+
+    function setRetailerInterfaceAddress(address _retailerInterfaceAddress) public {
+        // Check sul chiamante: deve essere il nodo ff admin       
+        require(msg.sender == nodoAdminAddress, "Operazione consentita solo al nodo admin: transazione rifiutata");
+        
+        retailerInterfaceAddress = _retailerInterfaceAddress;
     }
 }

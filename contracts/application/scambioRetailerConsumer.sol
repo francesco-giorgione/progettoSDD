@@ -17,20 +17,20 @@ contract ScambioRetailerConsumer {
     mapping(uint => PezzoFormaggio) public allPezziFormaggio;
     address private scambioProducerRetailerAddress;
     address private retailerInterfaceAddress;
+    address private nodoAdminAddress;
 
-    constructor(address _scambioProducerRetailerAddress, address _retailerInterfaceAddress) {
+    constructor(address _scambioProducerRetailerAddress, address _nodoAdminAddress) {
         scambioProducerRetailerAddress = _scambioProducerRetailerAddress;
-        retailerInterfaceAddress = _retailerInterfaceAddress;
+        nodoAdminAddress = _nodoAdminAddress; 
     }
 
     event MessaInVenditaPezzoFormaggio(PezzoFormaggio);
 
-
     function mettiInVenditaPezzoFormaggio(uint _quantita, uint _idFormaggioUsato, string memory user) public {
 
-        // check sul contratto chiamante
-        // require(msg.sender == retailerInterfaceAddress, "Operazione non autorizzata: transazione rifiutata");  
-
+        // Check sul chiamante
+        require(msg.sender == retailerInterfaceAddress, "Operazione non autorizzata: transazione rifiutata");
+        
         uint _id = getId();
 
         PezzoFormaggio memory daVendere = PezzoFormaggio({
@@ -62,5 +62,12 @@ contract ScambioRetailerConsumer {
         /*uint qtaRimanenteGrammi = Utils.grammiToLibbre(tmp.qtaRimanente);
         require(qtaRimanenteGrammi >= quantita, "Si sta tentando di acquistare una quantita' maggiore di quella disponibile: operazione rifiutata");
         scambioProducerRetailer.aggiornaQtaRimanente(idFormaggioUsato, quantita);*/
+    }
+
+    function setRetailerInterfaceAddress(address _retailerInterfaceAddress) public {
+        // Check sul chiamante: deve essere il nodo ff admin       
+        require(msg.sender == nodoAdminAddress, "Operazione consentita solo al nodo admin: transazione rifiutata");
+        
+        retailerInterfaceAddress = _retailerInterfaceAddress;
     }
 }

@@ -25,24 +25,23 @@ contract AcquistoMilkhub {
     string[] private alimentazioniMuccaOk = ["erba", "fieno"];
     
     address private milkhubInterfaceAddress;
+    address private nodoAdminAddress;
 
     mapping(uint => Silos) private allSilos;
 
     event AcquistoSilos(Silos silos);
 
-
-    constructor(address _milkhubInterfaceAddress) {
+    constructor(address _nodoAdminAddress) {
         lastSilosId = 0;
-        milkhubInterfaceAddress = _milkhubInterfaceAddress;
+        nodoAdminAddress = _nodoAdminAddress; 
     }
-
 
     function acquistaSilos(string memory _provenienza, string memory _fornitore, string memory _razzaMucca, string memory _alimentazioneMucca, 
                     uint _quantita, uint _dataProduzione, uint _dataScadenza, string memory user) public { 
 
-        // check sul contratto chiamante
-        //require(msg.sender == milkhubInterfaceAddress, "Operazione non autorizzata: transazione rifiutata");
-                        
+        // Check sul chiamante       
+        require(msg.sender == milkhubInterfaceAddress, "Operazione non autorizzata: transazione rifiutata");
+        
         checkDati(_dataProduzione, _dataScadenza, _provenienza, _razzaMucca, _alimentazioneMucca);
         uint _id = getId();
 
@@ -82,5 +81,12 @@ contract AcquistoMilkhub {
 
     function getById(uint id) public view returns(Silos memory) {
         return allSilos[id];
+    }
+
+    function setMilkhubInterfaceAddress(address _milkhubInterfaceAddress) public {
+        // Check sul chiamante: deve essere il nodo ff admin       
+        require(msg.sender == nodoAdminAddress, "Operazione consentita solo al nodo admin: transazione rifiutata");
+
+        milkhubInterfaceAddress = _milkhubInterfaceAddress;
     }
 }
