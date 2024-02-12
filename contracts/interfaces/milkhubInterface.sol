@@ -28,7 +28,7 @@ contract MilkhubInterface {
 
     function mettiInVenditaPartitaLatte(string[] memory tipoTrasformazione, uint dataScadenza, uint temperaturaConservazione, uint quantita,
                                             uint[] memory idSilosUsati, string memory user) public {
-        require(msg.sender == nodoChiamanteAddress, addressToString(msg.sender));
+        require(msg.sender == nodoChiamanteAddress, "Chiamante non autorizzato, la transazione deve provenire dal nodo firefly");
         require(gestioneUtenti.isMilkhub(user), "Username milkhub errato: transazione rifiutata");
         scambioMilkhubProducer.mettiInVenditaPartitaLatte(tipoTrasformazione, dataScadenza, temperaturaConservazione, quantita, idSilosUsati, user);
     }
