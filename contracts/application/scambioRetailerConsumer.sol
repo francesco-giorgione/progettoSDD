@@ -29,7 +29,7 @@ contract ScambioRetailerConsumer {
     function mettiInVenditaPezzoFormaggio(uint _quantita, uint _idFormaggioUsato, string memory user) public {
 
         // Check sul chiamante
-        require(msg.sender == retailerInterfaceAddress, "Operazione non autorizzata: transazione rifiutata");
+        require(msg.sender == retailerInterfaceAddress , "Operazione non autorizzata: transazione rifiutata");
         
         uint _id = getId();
 
@@ -49,6 +49,10 @@ contract ScambioRetailerConsumer {
     function getId() private returns(uint) {
         lastPezzoFormaggioId += 1;
         return lastPezzoFormaggioId;
+    }
+
+    function getById(uint id) public view returns(PezzoFormaggio memory) {
+        return allPezziFormaggio[id];
     }
 
     function checkDati(uint quantita, uint idFormaggioUsato, string memory user) private view {
