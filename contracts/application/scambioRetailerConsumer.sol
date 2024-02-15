@@ -74,4 +74,24 @@ contract ScambioRetailerConsumer {
         
         retailerInterfaceAddress = _retailerInterfaceAddress;
     }
+
+    function getIdPezziFormaggioByVenditore(string memory user) public view returns(uint[] memory) {
+        uint[] memory tmpIdPezziFormaggio = new uint[](lastPezzoFormaggioId);
+
+        uint j = 0;
+        for(uint i = 1; i <= lastPezzoFormaggioId; i++) {
+            if(Utils.compareStrings(allPezziFormaggio[i].venditore, user)) {
+                tmpIdPezziFormaggio[j] = i;
+                j++;
+            }
+        }
+
+        uint[] memory toReturn = new uint[](j);
+
+        for(uint i=0; i < j; i++) {
+            toReturn[i] = tmpIdPezziFormaggio[i];
+        }
+        
+        return toReturn;
+    }
 }

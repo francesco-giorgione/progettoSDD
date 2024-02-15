@@ -79,7 +79,7 @@ contract ScambioProducerRetailer {
         Formaggio memory daAcquistare = allFormaggi[id];
 
         // Se i campi di daAcquistare contengono i valori di default, significa che non esiste una partita di latte associata all'id. Il controllo viene eseguito sul
-        // campo alettza, ma può essere eseguito anche su altri campi
+        // campo altezza, ma può essere eseguito anche su altri campi
         require(daAcquistare.altezza > 0, "Formaggio non trovato: operazione rifiutata");
 
         require(daAcquistare.dataAcquisto == 0, "Il formaggio e' gia' stato venduto: operazione rifiutata");  
@@ -150,5 +150,37 @@ contract ScambioProducerRetailer {
         require(msg.sender == nodoAdminAddress, "Operazione consentita solo al nodo admin: transazione rifiutata");
         
         retailerInterfaceAddress = _retailerInterfaceAddress;
+    }
+
+    function getIdFormaggiByVenditore(string memory user) public view returns(uint[] memory) {
+        return getIdFormaggiByUser(true, user);
+    }
+
+    function getIdFormaggiByCompratore(string memory user) public view returns(uint[] memory) {
+        return getIdFormaggiByUser(false, user);
+    }
+
+    function getIdFormaggiByUser(bool byVenditore, string memory user) private view returns(uint[] memory) {
+        uint[] memory tmpIdFormaggi = new uint[](lastFormaggioId);
+
+        uint j = 0;
+        for(uint i = 1; i <= lastFormaggioId; i++) {
+            if(byVenditore && Utils.compareStrings(allFormaggi[i].venditore, user)) {
+                tmpIdFormaggi[j] = i;
+                j++;
+            }
+            else if(!byVenditore && Utils.compareStrings(allFormaggi[i].compratore, user)) {
+                tmpIdFormaggi[j] = i;
+                j++;
+            }
+        }
+
+        uint[] memory toReturn = new uint[](j);
+
+        for(uint i=0; i < j; i++) {
+            toReturn[i] = tmpIdFormaggi[i];
+        }
+        
+        return toReturn;
     }
 }

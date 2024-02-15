@@ -130,4 +130,38 @@ contract ScambioMilkhubProducer {
         
         producerInterfaceAddress = _producerInterfaceAddress;
     }
+
+    function getIdPartiteLatteByVenditore(string memory user) public view returns(uint[] memory) {
+        return getIdPartiteLatteByUser(true, user);
+    }
+
+    function getIdPartiteLatteByCompratore(string memory user) public view returns(uint[] memory) {
+        return getIdPartiteLatteByUser(false, user);
+    }
+
+    function getIdPartiteLatteByUser(bool byVenditore, string memory user) private view returns(uint[] memory) {
+        uint[] memory tmpIdPartiteLatte = new uint[](lastPartitaLatteId);
+
+        uint j = 0;
+        for(uint i = 1; i <= lastPartitaLatteId; i++) {
+            if(byVenditore && Utils.compareStrings(allPartiteLatte[i].venditore, user)) {
+                tmpIdPartiteLatte[j] = i;
+                j++;
+            }
+            else if(!byVenditore && Utils.compareStrings(allPartiteLatte[i].compratore, user)) {
+                tmpIdPartiteLatte[j] = i;
+                j++;
+            }
+        }
+
+        uint[] memory toReturn = new uint[](j);
+
+        for(uint i=0; i < j; i++) {
+            toReturn[i] = tmpIdPartiteLatte[i];
+        }
+        
+        return toReturn;
+    }
+
+    
 }

@@ -45,6 +45,7 @@ contract AcquistoMilkhub {
         checkDati(_dataProduzione, _dataScadenza, _provenienza, _razzaMucca, _alimentazioneMucca);
         uint _id = getId();
 
+
         Silos memory daAcquistare = Silos({
             id:                   _id,
             provenienza:          _provenienza,
@@ -88,5 +89,25 @@ contract AcquistoMilkhub {
         require(msg.sender == nodoAdminAddress, "Operazione consentita solo al nodo admin: transazione rifiutata");
 
         milkhubInterfaceAddress = _milkhubInterfaceAddress;
+    }
+
+    function getIdSilosByCompratore(string memory user) public view returns(uint[] memory) {
+        uint[] memory tmpIdSilos = new uint[](lastSilosId);
+
+        uint j = 0;
+        for(uint i = 1; i <= lastSilosId; i++) {
+            if(Utils.compareStrings(allSilos[i].compratore, user)) {
+                tmpIdSilos[j] = i;
+                j++;
+            }
+        }
+
+        uint[] memory toReturn = new uint[](j);
+
+        for(uint i=0; i < j; i++) {
+            toReturn[i] = tmpIdSilos[i];
+        }
+        
+        return toReturn;
     }
 }
