@@ -36,7 +36,7 @@ contract ScambioRetailerConsumer {
         PezzoFormaggio memory daVendere = PezzoFormaggio({
             id:                 _id,
             quantita:           _quantita,
-            dataAcquisto:       0,
+            dataAcquisto:       block.timestamp,
             idFormaggioUsato:   _idFormaggioUsato,
             venditore:          user
         });
