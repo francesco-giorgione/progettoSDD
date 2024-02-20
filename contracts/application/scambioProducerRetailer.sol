@@ -18,7 +18,6 @@ contract ScambioProducerRetailer {
         uint peso;                  // in libbre
         uint dataAcquisto;
         uint[] idPartiteLatteUsate;
-        uint qtaRimanente;
         string venditore;
         string compratore;
     }
@@ -62,7 +61,6 @@ contract ScambioProducerRetailer {
             peso:                       _peso,
             dataAcquisto:               0,
             idPartiteLatteUsate:        _idPartiteLatteUsate,
-            qtaRimanente:               _peso,
             venditore:                  user,
             compratore:                 ""
         });
@@ -129,13 +127,6 @@ contract ScambioProducerRetailer {
 
     function getById(uint id) public view returns (Formaggio memory) {
         return allFormaggi[id];
-    }
-
-    function aggiornaQtaRimanente(uint id, uint qtaDaSottrarre) public view {
-        Formaggio memory tmp = allFormaggi[id];
-        require(tmp.peso > 0, "Id formaggio errato: impossibile continuare");
-
-        tmp.qtaRimanente -= qtaDaSottrarre;
     }
 
     function setProducerInterfaceAddress(address _producerInterfaceAddress) public {
