@@ -21,5 +21,5 @@ interface ScambioProducerRetailer {
 }
 
 interface ScambioRetailerConsumer {
-    function mettiInVenditaPezzoFormaggio(uint _quantita, uint _idFormaggioUsato, string memory user) external;
+    function mettiInVenditaPezzoFormaggio(uint _idFormaggioUsato, string memory user) external;
 }

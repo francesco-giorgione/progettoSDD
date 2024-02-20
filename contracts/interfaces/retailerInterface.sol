@@ -25,10 +25,10 @@ contract RetailerInterface {
         scambioProducerRetailer.acquistaFormaggio(id, user);
     }
 
-    function mettiInVenditaPezzoFormaggio(string memory user, uint quantita, uint idFormaggioUsato) public {
+    function mettiInVenditaPezzoFormaggio(string memory user, uint idFormaggioUsato) public {
         require(msg.sender == nodoChiamanteAddress, "Chiamante non autorizzato, la transazione deve provenire dal nodo firefly");
         require(gestioneUtenti.isRetailer(user), "Username retailer errato: transazione rifiutata");
         ScambioRetailerConsumer scambioRetailerConsumer = ScambioRetailerConsumer(scambioRetailerConsumerAddress);
-        scambioRetailerConsumer.mettiInVenditaPezzoFormaggio(quantita, idFormaggioUsato, user);
+        scambioRetailerConsumer.mettiInVenditaPezzoFormaggio(idFormaggioUsato, user);
     }
 }
