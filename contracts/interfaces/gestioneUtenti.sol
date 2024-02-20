@@ -37,8 +37,8 @@ contract GestioneUtenti {
         milkhub1 = Utente({
             username : "milkhub1",
             PIVA : "55194110072",
-            ragioneSociale : "ragione sociale milkhub1",
-            sede : "sede milkhub1",
+            ragioneSociale : "Rossi Milkhub spa",
+            sede : "Via Roma 31, Milano",
             ruolo : Ruolo.Milkhub
         });
         utenti["milkhub1"] = milkhub1;
@@ -46,8 +46,8 @@ contract GestioneUtenti {
         milkhub2 = Utente({
             username : "milkhub2",
             PIVA : "13828510803",
-            ragioneSociale : "ragione sociale milkhub2",
-            sede : "sede milkhub2",
+            ragioneSociale : "Verdi Milkhub srl",
+            sede : "Piazza Plebiscito, Napoli",
             ruolo : Ruolo.Milkhub
         });
         utenti["milkhub2"] = milkhub2;
@@ -55,8 +55,8 @@ contract GestioneUtenti {
          milkhub3 = Utente({
             username : "milkhub3",
             PIVA : "15465950176",
-            ragioneSociale : "ragione sociale milkhub3",
-            sede : "sede milkhub3",
+            ragioneSociale : "Neri Milkhub spa",
+            sede : "Piazza della Concordia, Salerno",
             ruolo : Ruolo.Milkhub
         });
         utenti["milkhub3"] = milkhub3;
@@ -67,8 +67,8 @@ contract GestioneUtenti {
         producer1 = Utente({
             username : "producer1",
             PIVA : "22092130362",
-            ragioneSociale : "ragione sociale producer1",
-            sede : "sede producer1",
+            ragioneSociale : "Gatti Producer srl",
+            sede : "Via Roma, Modena",
             ruolo : Ruolo.Producer
         });
         utenti["producer1"] = producer1;
@@ -76,8 +76,8 @@ contract GestioneUtenti {
         producer2 = Utente({
             username : "producer2",
             PIVA : "69784221009",
-            ragioneSociale : "ragione sociale producer2",
-            sede : "sede producer2",
+            ragioneSociale : "Cani Producer snc",
+            sede : "Via dei Fori Imperiali, Roma",
             ruolo : Ruolo.Producer
         });
         utenti["producer2"] = producer2;
@@ -85,8 +85,8 @@ contract GestioneUtenti {
         producer3 = Utente({
             username : "producer3",
             PIVA : "64135140396",
-            ragioneSociale : "ragione sociale producer3",
-            sede : "sede producer3",
+            ragioneSociale : "Tigri Producer spa",
+            sede : "Via Condotti, Roma",
             ruolo : Ruolo.Producer
         });
         utenti["producer3"] = producer3;
@@ -97,8 +97,8 @@ contract GestioneUtenti {
         retailer1 = Utente({
             username : "retailer1",
             PIVA : "64532390826",
-            ragioneSociale : "ragione sociale retailer1",
-            sede : "sede retailer1",
+            ragioneSociale : "Fabiano Retailer srl",
+            sede : "Via Toledo, Napoli",
             ruolo : Ruolo.Retailer
         });
         utenti["retailer1"] = retailer1;
@@ -106,8 +106,8 @@ contract GestioneUtenti {
         retailer2 = Utente({
             username : "retailer2",
             PIVA : "42366330944",
-            ragioneSociale : "ragione sociale retailer2",
-            sede : "sede retailer2",
+            ragioneSociale : "De Rossi Retailer snc",
+            sede : "Piazza Malta, Napoli",
             ruolo : Ruolo.Retailer
         });
         utenti["retailer2"] = retailer2;
@@ -115,8 +115,8 @@ contract GestioneUtenti {
         retailer3 = Utente({
             username : "retailer3",
             PIVA : "19034251207",
-            ragioneSociale : "ragione sociale retailer3",
-            sede : "sede retailer3",
+            ragioneSociale : "Santoso Retailer srl",
+            sede : "Via Toledo, Napoli",
             ruolo : Ruolo.Retailer
         });
         utenti["retailer3"] = retailer3;
